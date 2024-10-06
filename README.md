@@ -119,6 +119,7 @@ aws ec2 run-instances \
 	--associate-public-ip-address \
 	--security-group-ids <command-host-sg-id>
 ```
+#### 5.2. SSH into the Command Host instance:
 
 ---
 
@@ -132,7 +133,7 @@ aws ec2 run-instances \
 	--subnet-id <subnet-id> \
 	--security-group-ids <processor-sg-id>
 ```
-#### 6.2. SSH into the Command Host instance:
+#### 6.2. SSH into the Processor instance.
 
 ---
 
@@ -141,7 +142,6 @@ aws ec2 run-instances \
 ---
 
 ## Step 7: Schedule EBS snapshots to be taken every minute using cron.
-#### 7.1. SSH into the Processor instance.
 #### 7.2. Retrieve EBS Volume ID from an EC2 Instance:
 ```bash
 aws ec2 describe-instances \
