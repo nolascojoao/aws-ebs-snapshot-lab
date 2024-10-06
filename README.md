@@ -159,25 +159,25 @@ ssh -i <your-key-pair> ec2-user@<private-ip>
 ---
 
 ## Step 7: Schedule EBS snapshots to be taken every minute using cron.
-#### 7.2. Retrieve EBS Volume ID from an EC2 Instance:
+#### 7.1. Retrieve EBS Volume ID from an EC2 Instance:
 ```bash
 aws ec2 describe-instances \
 	--instance-ids <instance-id> \
     --query "Reservations[*].Instances[*].BlockDeviceMappings[*].[Ebs.VolumeId]" \
     --output text
 ```
-#### 7.3. Add the following cron job to create a snapshot every minute:
+#### 7.2. Add the following cron job to create a snapshot every minute:
 ```bash
 echo "* * * * *  aws ec2 create-snapshot --volume-id <volume-id> 2>&1 >> /tmp/cronlog" > cronjob
 
 crontab cronjob
 ```
-#### 7.4. Retrieve Snapshots for a Specific EBS Volume:
+#### 7.3. Retrieve Snapshots for a Specific EBS Volume:
 ```bash
 aws ec2 describe-snapshots --filters "Name=volume-id,Values=<volume-id>"
 ```
 
-#### Step 7.5: Stop Cron Job
+#### 7.4: Stop Cron Job
 ```bash
 crontab -r
 ```
