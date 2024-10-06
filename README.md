@@ -185,11 +185,11 @@ crontab -r
 ---
 
 ## Step 9: Python Script to Delete Old Snapshots
-#### 9.1. Install Boto3:
+#### 9.1. Install pip and Boto3:
 ```bash
-sudo python3.7 -m pip install boto3
+sudo yum install python3-pip -y  
+pip3 install boto3
 ```
-
 - Before running the cleanup script, let's list all the snapshots that have been taken to ensure we have proper control before stopping the cron job and deleting the old snapshots.
 
 #### 9.2. List All Snapshots:
@@ -220,7 +220,7 @@ for v in volume_iterator:
 
     # Too many snapshots?
     snapshots = list(v.snapshots.all())
-    if len(snapshots > MAX_SNAPSHOTS):
+    if len(snapshots) > MAX_SNAPSHOTS:  # Correção aqui
         # Delete oldest snapshots, but keep MAX_SNAPSHOTS available
         snap_sorted = sorted([(s.id, s.start_time, s) for s in snapshots], key=lambda k: k[1])
         for s in snap_sorted[:-MAX_SNAPSHOTS]:
