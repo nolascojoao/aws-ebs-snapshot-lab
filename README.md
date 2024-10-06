@@ -10,6 +10,10 @@ This project is divided into two parts:
 - Part 2 automates the management of EBS snapshots, deletion of old snapshots, and syncing them with S3 for backup.
 
 ---
+⚠️ **Attention:**
+- All the tasks will be completed via the command line using AWS CLI. Ensure you have the necessary permissions. [Install AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+- Charges may apply for completing this lab. [AWS Pricing](https://aws.amazon.com/pricing/)
+---
 
 # Part 1: Architecture Preparation
 
@@ -34,8 +38,45 @@ aws ec2 create-subnet \
 
 ---
 
-## Step 3: Create Security Groups
-#### 3.1. Create and configure a security group for the Command Host instance, allowing SSH access:
+## Step 3: Create Internet Gateway and Public Route Table
+#### 3.1. Create an Internet Gateway (IGW):
+```bash
+aws ec2 create-internet-gateway
+```
+An IGW is necessary to allow public internet access for the EC2 instances in the public subnet.
+
+#### 3.2. Attach the IGW to your VPC:
+```bash
+aws ec2 attach-internet-gateway \
+	--internet-gateway-id <igw-id> \
+	--vpc-id <vpc-id>
+```
+
+#### 3.3. Create a Public Route Table:
+```bash
+aws ec2 create-route-table --vpc-id <vpc-id>
+```
+This route table will allow instances in the public subnet to communicate with the internet.
+
+#### 3.4. Add a Route to the Internet Gateway in the Public Route Table:
+```bash
+aws ec2 create-route \
+	--route-table-id <route-table-id> \
+	--destination-cidr-block 0.0.0.0/0 \
+	--gateway-id <igw-id>
+```
+
+#### 3.5. Associate the Public Subnet with the Route Table:
+```bash
+aws ec2 associate-route-table \
+	--route-table-id <route-table-id> \
+	--subnet-id <subnet-id>
+```
+
+---
+
+## Step 4: Create Security Groups
+#### 4.1. Create and configure a security group for the Command Host instance, allowing SSH access:
 ```bash
 aws ec2 create-security-group \
 	--group-name CommandHostSG \
@@ -49,7 +90,7 @@ aws ec2 authorize-security-group-ingress \
 	--cidr <your-ip>/32
 ```
 
-#### 3.2. Create a security group for the Processor instance and allow SSH access from the Command Host:
+#### 4.2. Create a security group for the Processor instance and allow SSH access from the Command Host:
 ```bash
 aws ec2 create-security-group \
 	--group-name ProcessorSG \
@@ -65,8 +106,8 @@ aws ec2 authorize-security-group-ingress \
 
 ---
 
-## Step 4: Launch Command Host EC2 Instance
-#### 4.1. This instance will manage and control other resources:
+## Step 5: Launch Command Host EC2 Instance
+#### 5.1. This instance will manage and control other resources:
 ```bash
 aws ec2 run-instances \
 	--image-id ami-<your-ami-id> \
@@ -79,8 +120,8 @@ aws ec2 run-instances \
 
 ---
 
-## Step 5: Launch Processor EC2 Instance
-#### 5.1. This instance will interact with the default EBS volume attached to it for processing data:
+## Step 6: Launch Processor EC2 Instance
+#### 6.1. This instance will interact with the default EBS volume attached to it for processing data:
 ```bash
 aws ec2 run-instances \
 	--image-id ami-<your-ami-id> \
@@ -96,32 +137,39 @@ aws ec2 run-instances \
 
 ---
 
-## Step 6: Schedule EBS snapshots to be taken every minute using cron.
-	- 1. SSH into the Processor instance.
-	- 2. Add the following cron job to create a snapshot every minute:
+## Step 7: Schedule EBS snapshots to be taken every minute using cron.
+#### 7.1. SSH into the Processor instance.
+#### 7.2. Add the following cron job to create a snapshot every minute:
 ```bash
 * * * * * aws ec2 create-snapshot --volume-id <volume-id> --description "Automated snapshot"
 ```
 
 ---
 
-## Step 7: Stop Cron Job
-#### 7.1. nce sufficient snapshots are created, stop the cron job by editing the cron configuration:
+## Step 8: Stop Cron Job
+#### 8.1. nce sufficient snapshots are created, stop the cron job by editing the cron configuration:
 ```bash
 crontab -e
 ```
 
 ---
 
-## Step 8: Python Script to Delete Old Snapshots
-- Before running the cleanup script, let's list all the snapshots that have been taken to ensure we have proper control before stopping the cron job and deleting the old snapshots.
-
-#### 8.1. List All Snapshots:
+## Step 9: Python Script to Delete Old Snapshots
+#### 9.1. Install Boto3:
 ```bash
-aws ec2 describe-snapshots --filters "Name=volume-id, Values=<VOLUME-ID>" --query 'Snapshots[*].SnapshotId'
+sudo python3.7 -m pip install boto3
 ```
 
-#### 8.2. Python Script:
+- Before running the cleanup script, let's list all the snapshots that have been taken to ensure we have proper control before stopping the cron job and deleting the old snapshots.
+
+#### 9.2. List All Snapshots:
+```bash
+aws ec2 describe-snapshots \
+	--filters "Name=volume-id, Values=<VOLUME-ID>" \
+	--query 'Snapshots[*].SnapshotId'
+```
+
+#### 9.3. Python Script:
 - Save the script below as snapshot_cleanup.py and execute it to delete the oldest snapshots, keeping only the two most recent ones:
 ```bash
 #!/usr/bin/env python
@@ -152,12 +200,12 @@ for v in volume_iterator:
 
 ---
 
-## Step 9: Sync Snapshots with S3
-#### 9.1. Create an S3 bucket and sync the snapshot data to the bucket:
+## Step 10: Sync Snapshots with S3
+#### 10.1. Create an S3 bucket and sync the snapshot data to the bucket:
 ```bash
 aws s3api create-bucket --bucket <your-bucket-name> --region <your-region>
 ```
-#### 9.2. Sync the snapshots to your bucket:
+#### 10.2. Sync the snapshots to your bucket:
 ```bash
 aws s3 sync /path/to/snapshot s3://<your-bucket-name>/
 ```
