@@ -79,6 +79,7 @@ aws ec2 associate-route-table \
 #### 4.1. Create and configure a security group for the Command Host instance, allowing SSH access:
 ```bash
 aws ec2 create-security-group \
+	--vpc-id <vpc-id> \
 	--group-name CommandHostSG \
 	--description "Security group for Command Host"
 ```
@@ -93,6 +94,7 @@ aws ec2 authorize-security-group-ingress \
 #### 4.2. Create a security group for the Processor instance and allow SSH access from the Command Host:
 ```bash
 aws ec2 create-security-group \
+	--vpc-id <vpc-id> \
 	--group-name ProcessorSG \
 	--description "Security group for Processor"
 ```
