@@ -120,6 +120,15 @@ aws ec2 run-instances \
 	--security-group-ids <command-host-sg-id>
 ```
 #### 5.2. SSH into the Command Host instance:
+```bash
+aws ec2 describe-instances \
+	--instance-ids <instance-id> \
+	--query 'Reservations[*].Instances[*].PublicIpAddress' \
+	--output text
+```
+```bash
+ssh -i <your-key-pair> ec2-user@<public-ip>
+```
 
 ---
 
@@ -134,6 +143,14 @@ aws ec2 run-instances \
 	--security-group-ids <processor-sg-id>
 ```
 #### 6.2. SSH into the Processor instance.
+```bash
+aws ec2 describe-instances \
+	--instance-ids <instance-id> \
+	--query 'Reservations[*].Instances[*].PrivateIpAddress' --output text
+```
+```bash
+ssh -i <your-key-pair> ec2-user@<private-ip>
+```
 
 ---
 
