@@ -132,6 +132,7 @@ aws ec2 run-instances \
 	--subnet-id <subnet-id> \
 	--security-group-ids <processor-sg-id>
 ```
+#### 6.2. SSH into the Command Host instance:
 
 ---
 
