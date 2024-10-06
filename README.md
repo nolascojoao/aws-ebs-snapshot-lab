@@ -7,7 +7,7 @@
 ## Overview
 This project is divided into two parts: 
 - Part 1 focuses on setting up the architecture necessary to conduct the lab, including creating a VPC, subnets, and EC2 instances. 
-- Part 2 automates the management of EBS snapshots, deletion of old snapshots, and syncing them with S3 for backup.
+- Part 2 automates the management of EBS snapshots, deletion of old snapshots, syncing local files with S3 for backup, and utilizing versioning for file recovery.
 
 ---
 ⚠️ **Attention:**
@@ -200,15 +200,55 @@ for v in volume_iterator:
 
 ---
 
-## Step 10: Sync Snapshots with S3
-#### 10.1. Create an S3 bucket and sync the snapshot data to the bucket:
+## Step 10: Sync Local Files with S3 and Use Versioning for Recovery
+- In this step, you'll download a set of sample files, create an Amazon S3 bucket, enable versioning to track changes, and test file recovery from S3 using versioning.
+---
+#### 10.1. Create an S3 bucket:
 ```bash
 aws s3api create-bucket --bucket <your-bucket-name> --region <your-region>
 ```
-#### 10.2. Sync the snapshots to your bucket:
+#### 10.2. Download Sample Files
 ```bash
-aws s3 sync /path/to/snapshot s3://<your-bucket-name>/
+wget https://aws-tc-largeobjects.s3.us-west-2.amazonaws.com/CUR-TF-100-RSJAWS-3-23732/183-lab-JAWS-managing-storage/s3/files.zip
 ```
+#### 10.3. Unzip the Files
+```bash
+unzip files.zip
+```
+#### 10.4. Enable Versioning on Your S3 Bucket:
+```bash
+aws s3api put-bucket-versioning \
+	--bucket <your-bucket-name> \
+	--versioning-configuration Status=Enabled
+```
+- To ensure that any changes or deletions to files are tracked, you need to activate versioning on your S3 bucket. Run the following command to enable versioning on your bucket
+- This ensures that every time you modify or delete a file in the S3 bucket, the previous version is retained, allowing for easy recovery.
+#### 10.5. Sync Files to S3 Bucket:
+```bash
+aws s3 sync ./files/ s3://<your-bucket-name>/
+```
+- Sync the unzipped folder with your S3 bucket. This will upload all the files from the local directory to the S3 bucket. Use the following command to sync the folder
+- This command will upload the files from the ./files/ directory to your S3 bucket.
+#### 10.6. Sync with Deletion Capability
+```bash
+aws s3 sync ./files/ s3://<your-bucket-name>/ --delete
+```
+- To ensure that any local file deletion is reflected in the S3 bucket, use the --delete flag with the sync command. This flag deletes files from the S3 bucket when the corresponding file is deleted locally
+- If you delete a file locally and re-run this command, the corresponding file in the S3 bucket will be deleted as well.
+
+---
+
+## Step 11: Recover Deleted Files Using Versioning
+#### 11.1. Liste the versions of the deleted file:
+```bash
+aws s3api list-object-versions --bucket <your-bucket-name> --prefix <file-name>
+```
+- Since versioning is enabled, even when a file is deleted, its previous version is still stored in the S3 bucket.
+#### 11.2. Use the following command to restore a specific version of the deleted file:
+```bash
+aws s3 cp s3://<your-bucket-name>/<file-name> --version-id <version-id> ./files/
+```
+- Now, your deleted file will be restored from a previous version stored in S3!
 
 
 
