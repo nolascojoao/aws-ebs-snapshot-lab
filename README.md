@@ -26,7 +26,7 @@ aws ec2 create-vpc --cidr-block 10.0.0.0/16
 ```
 
 <div align="center">
-  <img src="screenshot/1.1.png" width=""/>
+  <img src="screenshot/1.1.PNG" width=""/>
 </div>
 
 ---
@@ -41,7 +41,7 @@ aws ec2 create-subnet \
 ```
 
 <div align="center">
-  <img src="screenshot/2.1.png" width=""/>
+  <img src="screenshot/2.1.PNG" width=""/>
 </div>
 
 ---
@@ -54,7 +54,7 @@ aws ec2 create-internet-gateway
 An IGW is necessary to allow public internet access for the EC2 instances in the public subnet.
 
 <div align="center">
-  <img src="screenshot/3.1.png" width=""/>
+  <img src="screenshot/3.1.PNG" width=""/>
 </div>
 
 #### 3.2. Attach the IGW to your VPC:
@@ -65,7 +65,7 @@ aws ec2 attach-internet-gateway \
 ```
 
 <div align="center">
-  <img src="screenshot/3.2.png" width=""/>
+  <img src="screenshot/3.2.PNG" width=""/>
 </div>
 
 #### 3.3. Create a Public Route Table:
@@ -75,7 +75,7 @@ aws ec2 create-route-table --vpc-id <vpc-id>
 This route table will allow instances in the public subnet to communicate with the internet.
 
 <div align="center">
-  <img src="screenshot/3.3.png" width=""/>
+  <img src="screenshot/3.3.PNG" width=""/>
 </div>
 
 #### 3.4. Add a Route to the Internet Gateway in the Public Route Table:
@@ -87,7 +87,7 @@ aws ec2 create-route \
 ```
 
 <div align="center">
-  <img src="screenshot/3.4.png" width=""/>
+  <img src="screenshot/3.4.PNG" width=""/>
 </div>
 
 #### 3.5. Associate the Public Subnet with the Route Table:
@@ -98,7 +98,7 @@ aws ec2 associate-route-table \
 ```
 
 <div align="center">
-  <img src="screenshot/3.5.png" width=""/>
+  <img src="screenshot/3.5.PNG" width=""/>
 </div>
 
 ---
@@ -120,7 +120,7 @@ aws ec2 authorize-security-group-ingress \
 ```
 
 <div align="center">
-  <img src="screenshot/4.1.png" width=""/>
+  <img src="screenshot/4.1.PNG" width=""/>
 </div>
 
 #### 4.2. Create a security group for the Processor instance and allow SSH access from the Command Host:
@@ -139,7 +139,7 @@ aws ec2 authorize-security-group-ingress \
 ```
 
 <div align="center">
-  <img src="screenshot/4.2.png" width=""/>
+  <img src="screenshot/4.2.PNG" width=""/>
 </div>
 
 ---
@@ -157,7 +157,7 @@ aws ec2 run-instances \
 ```
 
 <div align="center">
-  <img src="screenshot/1.1.png" width=""/>
+  <img src="screenshot/1.1.PNG" width=""/>
 </div>
 
 #### 5.2. SSH into the Command Host instance:
@@ -172,7 +172,7 @@ ssh -i <your-key-pair> ec2-user@<public-ip>
 ```
 
 <div align="center">
-  <img src="screenshot/5.2.png" width=""/>
+  <img src="screenshot/5.2.PNG" width=""/>
 </div>
 
 ---
@@ -189,7 +189,7 @@ aws ec2 run-instances \
 ```
 
 <div align="center">
-  <img src="screenshot/6.1.png" width=""/>
+  <img src="screenshot/6.1.PNG" width=""/>
 </div>
 
 #### 6.2. SSH into the Processor instance.
@@ -203,7 +203,7 @@ ssh -i <your-key-pair> ec2-user@<private-ip>
 ```
 
 <div align="center">
-  <img src="screenshot/6.2.png" width=""/>
+  <img src="screenshot/6.2.PNG" width=""/>
 </div>
 
 ---
@@ -216,7 +216,7 @@ ssh -i <your-key-pair> ec2-user@<private-ip>
 #### Install cronie:
 
 <div align="center">
-  <img src="screenshot/7.0.png" width=""/>
+  <img src="screenshot/7.0.PNG" width=""/>
 </div>
 
 #### 7.1. Retrieve EBS Volume ID from an EC2 Instance:
@@ -228,7 +228,7 @@ aws ec2 describe-instances \
 ```
 
 <div align="center">
-  <img src="screenshot/7.1.png" width=""/>
+  <img src="screenshot/7.1.PNG" width=""/>
 </div>
 
 #### 7.2. Add the following cron job to create a snapshot every minute:
@@ -239,15 +239,15 @@ crontab cronjob
 ```
 
 <div align="center">
-  <img src="screenshot/7.2.1.png" width=""/>
+  <img src="screenshot/7.2.1.PNG" width=""/>
 </div>
 
 <div align="center">
-  <img src="screenshot/7.2.2.png" width=""/>
+  <img src="screenshot/7.2.2.PNG" width=""/>
 </div>
 
 <div align="center">
-  <img src="screenshot/7.2.3.png" width=""/>
+  <img src="screenshot/7.2.3.PNG" width=""/>
 </div>
 
 #### 7.3. Retrieve Snapshots for a Specific EBS Volume:
@@ -256,7 +256,7 @@ aws ec2 describe-snapshots --filters "Name=volume-id,Values=<volume-id>"
 ```
 
 <div align="center">
-  <img src="screenshot/7.3.png" width=""/>
+  <img src="screenshot/7.3.PNG" width=""/>
 </div>
 
 #### 7.4: Stop Cron Job
@@ -265,7 +265,7 @@ crontab -r
 ```
 
 <div align="center">
-  <img src="screenshot/7.4.png" width=""/>
+  <img src="screenshot/7.4.PNG" width=""/>
 </div>
 
 ---
@@ -279,7 +279,7 @@ pip3 install boto3
 - Before running the cleanup script, let's list all the snapshots that have been taken to ensure we have proper control before stopping the cron job and deleting the old snapshots.
 
 <div align="center">
-  <img src="screenshot/8.1.png" width=""/>
+  <img src="screenshot/8.1.PNG" width=""/>
 </div>
 
 #### 8.2. List All Snapshots:
@@ -290,7 +290,7 @@ aws ec2 describe-snapshots \
 ```
 
 <div align="center">
-  <img src="screenshot/8.2.png" width=""/>
+  <img src="screenshot/8.2.PNG" width=""/>
 </div>
 
 #### 8.3. Python Script:
@@ -323,15 +323,15 @@ for v in volume_iterator:
 ```
 
 <div align="center">
-  <img src="screenshot/8.3.1.png" width=""/>
+  <img src="screenshot/8.3.1.PNG" width=""/>
 </div>
 
 <div align="center">
-  <img src="screenshot/8.3.2.png" width=""/>
+  <img src="screenshot/8.3.2.PNG" width=""/>
 </div>
 
 <div align="center">
-  <img src="screenshot/8.3.3.png" width=""/>
+  <img src="screenshot/8.3.3.PNG" width=""/>
 </div>
 
 ---
@@ -344,7 +344,7 @@ for v in volume_iterator:
 aws s3api create-bucket --bucket <your-bucket-name> --region <your-region>
 ```
 <div align="center">
-  <img src="screenshot/9.1.png" width=""/>
+  <img src="screenshot/9.1.PNG" width=""/>
 </div>
 
 #### 9.2. Download Sample Files
@@ -353,7 +353,7 @@ wget https://aws-tc-largeobjects.s3.us-west-2.amazonaws.com/CUR-TF-100-RSJAWS-3-
 ```
 
 <div align="center">
-  <img src="screenshot/9.2.png" width=""/>
+  <img src="screenshot/9.2.PNG" width=""/>
 </div>
 
 #### 9.3. Unzip the Files
@@ -362,7 +362,7 @@ unzip files.zip
 ```
 
 <div align="center">
-  <img src="screenshot/9.3.png" width=""/>
+  <img src="screenshot/9.3.PNG" width=""/>
 </div>
 
 #### 9.4. Enable Versioning on Your S3 Bucket:
@@ -375,7 +375,7 @@ aws s3api put-bucket-versioning \
 - This ensures that every time you modify or delete a file in the S3 bucket, the previous version is retained, allowing for easy recovery.
 
 <div align="center">
-  <img src="screenshot/9.4.png" width=""/>
+  <img src="screenshot/9.4.PNG" width=""/>
 </div>
 
 #### 10.5. Sync Files to S3 Bucket:
@@ -386,7 +386,7 @@ aws s3 sync ./files/ s3://<your-bucket-name>/
 - This command will upload the files from the ./files/ directory to your S3 bucket.
 
 <div align="center">
-  <img src="screenshot/9.5.png" width=""/>
+  <img src="screenshot/9.5.PNG" width=""/>
 </div>
 
 #### 10.6. Sync with Deletion Capability
@@ -397,7 +397,7 @@ aws s3 sync ./files/ s3://<your-bucket-name>/ --delete
 - If you delete a file locally and re-run this command, the corresponding file in the S3 bucket will be deleted as well.
 
 <div align="center">
-  <img src="screenshot/9.6.png" width=""/>
+  <img src="screenshot/9.6.PNG" width=""/>
 </div>
 
 ---
@@ -410,7 +410,7 @@ aws s3api list-object-versions --bucket <your-bucket-name> --prefix <file-name>
 - Since versioning is enabled, even when a file is deleted, its previous version is still stored in the S3 bucket.
 
 <div align="center">
-  <img src="screenshot/10.1.png" width=""/>
+  <img src="screenshot/10.1.PNG" width=""/>
 </div>
 
 #### 10.2. Use the following command to restore a specific version of the deleted file:
@@ -420,7 +420,7 @@ aws s3api get-object --bucket <bucket-name> --key <object-key> --version-id <ver
 - Now, your deleted file will be restored from a previous version stored in S3!
 
 <div align="center">
-  <img src="screenshot/10.2.png" width=""/>
+  <img src="screenshot/10.2.PNG" width=""/>
 </div>
 
 ---
@@ -436,7 +436,7 @@ aws ec2 describe-instances --query 'Reservations[*].Instances[*].InstanceId' --o
 ```
 
 <div align="center">
-  <img src="screenshot/11.1.1.png" width=""/>
+  <img src="screenshot/11.1.1.PNG" width=""/>
 </div>
 
 #### 2. Terminate the instances:
@@ -445,7 +445,7 @@ aws ec2 terminate-instances --instance-ids <instance-id-1> <instance-id-2>
 ```
 
 <div align="center">
-  <img src="screenshot/11.1.2.png" width=""/>
+  <img src="screenshot/11.1.2.PNG" width=""/>
 </div>
 
 ### 11.2: Delete S3 Bucket and Objects
@@ -455,7 +455,7 @@ aws s3 rm s3://<your-bucket-name>/ --recursive
 ```
 
 <div align="center">
-  <img src="screenshot/11.2.1.png" width=""/>
+  <img src="screenshot/11.2.1.PNG" width=""/>
 </div>
 
 #### 2. Delete the S3 bucket:
@@ -464,7 +464,7 @@ aws s3api delete-bucket --bucket <your-bucket-name>
 ```
 
 <div align="center">
-  <img src="screenshot/11.2.2.png" width=""/>
+  <img src="screenshot/11.2.2.PNG" width=""/>
 </div>
 
 ### 11.3: Detach and Delete the Internet Gateway
@@ -474,7 +474,7 @@ aws ec2 detach-internet-gateway --internet-gateway-id <igw-id> --vpc-id <vpc-id>
 ```
 
 <div align="center">
-  <img src="screenshot/11.3.1.png" width=""/>
+  <img src="screenshot/11.3.1.PNG" width=""/>
 </div>
 
 #### 2. Delete the Internet Gateway:
@@ -483,7 +483,7 @@ aws ec2 delete-internet-gateway --internet-gateway-id <igw-id>
 ```
 
 <div align="center">
-  <img src="screenshot/11.3.2.png" width=""/>
+  <img src="screenshot/11.3.2.PNG" width=""/>
 </div>
 
 ### 11.4: Delete the Subnet
@@ -493,7 +493,7 @@ aws ec2 delete-subnet --subnet-id <subnet-id>
 ```
 
 <div align="center">
-  <img src="screenshot/11.4.png" width=""/>
+  <img src="screenshot/11.4.PNG" width=""/>
 </div>
 
 ### 11.5: Delete Route Table
@@ -503,7 +503,7 @@ aws ec2 delete-route-table --route-table-id <route-table-id>
 ```
 
 <div align="center">
-  <img src="screenshot/11.5.png" width=""/>
+  <img src="screenshot/11.5.PNG" width=""/>
 </div>
 
 ### 11.6: Deleting All EBS Snapshots
@@ -512,7 +512,7 @@ aws ec2 describe-snapshots --owner-ids self --query 'Snapshots[*].SnapshotId' --
 ```
 
 <div align="center">
-  <img src="screenshot/11.6.png" width=""/>
+  <img src="screenshot/11.6.PNG" width=""/>
 </div>
 
 ### 11.7: Delete Security Groups
@@ -523,7 +523,7 @@ aws ec2 delete-security-group --group-id <command-host-sg-id>
 ```
 
 <div align="center">
-  <img src="screenshot/11.7.png" width=""/>
+  <img src="screenshot/11.7.PNG" width=""/>
 </div>
 
 ### 11.8: Delete the VPC
@@ -533,7 +533,7 @@ aws ec2 delete-vpc --vpc-id <vpc-id>
 ```
 
 <div align="center">
-  <img src="screenshot/11.8.png" width=""/>
+  <img src="screenshot/11.8.PNG" width=""/>
 </div>
 
 
