@@ -1,4 +1,4 @@
-# AWS Python EBS Snapshots 
+# AWS Python EBS Snapshots Lab
 
 <div align="center">
   <img src="screenshot/architecture.png" width=""/>
@@ -6,8 +6,9 @@
 
 ## Overview
 This project is divided into two parts: 
-- Part 1 focuses on setting up the architecture necessary to conduct the lab, including creating a VPC, subnets, and EC2 instances. 
-- Part 2 automates the management of EBS snapshots, deletion of old snapshots, syncing local files with S3 for backup, and utilizing versioning for file recovery.
+- Part I focuses on setting up the architecture necessary to conduct the lab, including creating a VPC, subnets, and EC2 instances. 
+- Part II automates the management of EBS snapshots, deletion of old snapshots, syncing local files with S3 for backup, and utilizing versioning for file recovery.
+- Part III focuses on cleaning up and deleting all resources to avoid charges.
 
 ---
 ⚠️ **Attention:**
@@ -15,7 +16,7 @@ This project is divided into two parts:
 - Charges may apply for completing this lab. [AWS Pricing](https://aws.amazon.com/pricing/)
 ---
 
-# Part 1: Architecture Preparation
+# Part I: Architecture Preparation
 
 ---
 
@@ -208,17 +209,11 @@ ssh -i <your-key-pair> ec2-user@<private-ip>
 
 ---
 
-# Part 2: Automating EBS Snapshots and Syncing to S3
+# Part II: Automating EBS Snapshots and Syncing to S3
 
 ---
 
 ## Step 7: Schedule EBS snapshots to be taken every minute using cron.
-#### Install cronie:
-
-<div align="center">
-  <img src="screenshot/7.0.PNG" width=""/>
-</div>
-
 #### 7.1. Retrieve EBS Volume ID from an EC2 Instance:
 ```bash
 aws ec2 describe-instances \
@@ -231,12 +226,7 @@ aws ec2 describe-instances \
   <img src="screenshot/7.1.PNG" width=""/>
 </div>
 
-#### 7.2. Add the following cron job to create a snapshot every minute:
-```bash
-echo "* * * * *  aws ec2 create-snapshot --volume-id <volume-id> 2>&1 >> /tmp/cronlog" > cronjob
-
-crontab cronjob
-```
+#### 7.2. Install cronie:
 
 <div align="center">
   <img src="screenshot/7.2.1.PNG" width=""/>
@@ -246,11 +236,18 @@ crontab cronjob
   <img src="screenshot/7.2.2.PNG" width=""/>
 </div>
 
+#### 7.3. Add the following cron job to create a snapshot every minute:
+```bash
+echo "* * * * *  aws ec2 create-snapshot --volume-id <volume-id> 2>&1 >> /tmp/cronlog" > cronjob
+
+crontab cronjob
+```
+
 <div align="center">
   <img src="screenshot/7.2.3.PNG" width=""/>
 </div>
 
-#### 7.3. Retrieve Snapshots for a Specific EBS Volume:
+#### 7.4. Retrieve Snapshots for a Specific EBS Volume:
 ```bash
 aws ec2 describe-snapshots --filters "Name=volume-id,Values=<volume-id>"
 ```
@@ -259,7 +256,7 @@ aws ec2 describe-snapshots --filters "Name=volume-id,Values=<volume-id>"
   <img src="screenshot/7.3.PNG" width=""/>
 </div>
 
-#### 7.4: Stop Cron Job
+#### 7.5: Stop Cron Job
 ```bash
 crontab -r
 ```
@@ -276,7 +273,6 @@ crontab -r
 sudo yum install python3-pip -y  
 pip3 install boto3
 ```
-- Before running the cleanup script, let's list all the snapshots that have been taken to ensure we have proper control before stopping the cron job and deleting the old snapshots.
 
 <div align="center">
   <img src="screenshot/8.1.PNG" width=""/>
@@ -293,8 +289,17 @@ aws ec2 describe-snapshots \
   <img src="screenshot/8.2.PNG" width=""/>
 </div>
 
-#### 8.3. Python Script:
-- Save the script below as snapshot_cleanup.py and execute it to delete the oldest snapshots, keeping only the two most recent ones:
+#### 8.3. Open `nano`:
+```bash
+nano snapshot_cleanup.py
+```
+
+<div align="center">
+  <img src="screenshot/8.3.1.PNG" width=""/>
+</div>
+
+#### 8.4. Copy the script below as `snapshot_cleanup.py` to delete the oldest snapshots, keeping the two most recent:
+
 ```bash
 #!/usr/bin/env python
 
@@ -322,13 +327,19 @@ for v in volume_iterator:
             s[2].delete()
 ```
 
-<div align="center">
-  <img src="screenshot/8.3.1.PNG" width=""/>
-</div>
+- Right-click to paste it.
+- Press `CTRL+O`to write (save) the file.
+- Press `Enter` to confirm the filename.
+- Press `Ctrl+X` to exit the nano editor.
 
 <div align="center">
   <img src="screenshot/8.3.2.PNG" width=""/>
 </div>
+
+#### 8.5. Run:
+```bash
+python3 snapshot_cleanup.py
+```
 
 <div align="center">
   <img src="screenshot/8.3.3.PNG" width=""/>
@@ -337,7 +348,7 @@ for v in volume_iterator:
 ---
 
 ## Step 9: Sync Local Files with S3 and Use Versioning for Recovery
-- In this step, you'll download a set of sample files, create an Amazon S3 bucket, enable versioning to track changes, and test file recovery from S3 using versioning.
+- Download sample files, create an S3 bucket, enable versioning, and test file recovery by restoring previous versions.
 ---
 #### 9.1. Create an S3 bucket:
 ```bash
@@ -371,8 +382,6 @@ aws s3api put-bucket-versioning \
 	--bucket <your-bucket-name> \
 	--versioning-configuration Status=Enabled
 ```
-- To ensure that any changes or deletions to files are tracked, you need to activate versioning on your S3 bucket. Run the following command to enable versioning on your bucket
-- This ensures that every time you modify or delete a file in the S3 bucket, the previous version is retained, allowing for easy recovery.
 
 <div align="center">
   <img src="screenshot/9.4.PNG" width=""/>
@@ -382,8 +391,6 @@ aws s3api put-bucket-versioning \
 ```bash
 aws s3 sync ./files/ s3://<your-bucket-name>/
 ```
-- Sync the unzipped folder with your S3 bucket. This will upload all the files from the local directory to the S3 bucket. Use the following command to sync the folder
-- This command will upload the files from the ./files/ directory to your S3 bucket.
 
 <div align="center">
   <img src="screenshot/9.5.PNG" width=""/>
@@ -393,8 +400,6 @@ aws s3 sync ./files/ s3://<your-bucket-name>/
 ```bash
 aws s3 sync ./files/ s3://<your-bucket-name>/ --delete
 ```
-- To ensure that any local file deletion is reflected in the S3 bucket, use the --delete flag with the sync command. This flag deletes files from the S3 bucket when the corresponding file is deleted locally
-- If you delete a file locally and re-run this command, the corresponding file in the S3 bucket will be deleted as well.
 
 <div align="center">
   <img src="screenshot/9.6.PNG" width=""/>
@@ -413,7 +418,7 @@ aws s3api list-object-versions --bucket <your-bucket-name> --prefix <file-name>
   <img src="screenshot/10.1.PNG" width=""/>
 </div>
 
-#### 10.2. Use the following command to restore a specific version of the deleted file:
+#### 10.2. Restore a specific version of the deleted file:
 ```bash
 aws s3api get-object --bucket <bucket-name> --key <object-key> --version-id <version-id> <output-file>
 ```
@@ -425,12 +430,12 @@ aws s3api get-object --bucket <bucket-name> --key <object-key> --version-id <ver
 
 ---
 
-## Step 11: Clean Up and Delete All Resources to Avoid Charges
+# Part III: Clean Up and Delete All Resources to Avoid Charges
 
 ---
 
-### 11.1: Stop and Terminate EC2 Instances
-#### 1. List all EC2 instances to find the Instance IDs:
+## Step 11: Stop and Terminate EC2 Instances
+#### 11.1. List all EC2 instances to find the Instance IDs:
 ```bash
 aws ec2 describe-instances --query 'Reservations[*].Instances[*].InstanceId' --output text
 ```
@@ -439,7 +444,7 @@ aws ec2 describe-instances --query 'Reservations[*].Instances[*].InstanceId' --o
   <img src="screenshot/11.1.1.PNG" width=""/>
 </div>
 
-#### 2. Terminate the instances:
+#### 11.2. Terminate the instances:
 ```bash
 aws ec2 terminate-instances --instance-ids <instance-id-1> <instance-id-2>
 ```
@@ -448,17 +453,19 @@ aws ec2 terminate-instances --instance-ids <instance-id-1> <instance-id-2>
   <img src="screenshot/11.1.2.PNG" width=""/>
 </div>
 
-### 11.2: Delete S3 Bucket and Objects
-#### 1. Empty the S3 bucket (replace <your-bucket-name> with your bucket's name):
+## 12: Delete S3 Bucket and Objects
+#### 12.1. Empty the S3 bucket (replace <your-bucket-name> with your bucket's name):
 ```bash
 aws s3 rm s3://<your-bucket-name>/ --recursive
 ```
+
+---
 
 <div align="center">
   <img src="screenshot/11.2.1.PNG" width=""/>
 </div>
 
-#### 2. Delete the S3 bucket:
+#### 12.2. Delete the S3 bucket:
 ```bash
 aws s3api delete-bucket --bucket <your-bucket-name>
 ```
@@ -467,8 +474,10 @@ aws s3api delete-bucket --bucket <your-bucket-name>
   <img src="screenshot/11.2.2.PNG" width=""/>
 </div>
 
-### 11.3: Detach and Delete the Internet Gateway
-#### 1. Detach the Internet Gateway from your VPC (replace <igw-id> and <vpc-id> with your IDs):
+---
+
+## 13: Detach and Delete the Internet Gateway
+#### 13.1. Detach the Internet Gateway from your VPC (replace <igw-id> and <vpc-id> with your IDs):
 ```bash
 aws ec2 detach-internet-gateway --internet-gateway-id <igw-id> --vpc-id <vpc-id>
 ```
@@ -477,7 +486,7 @@ aws ec2 detach-internet-gateway --internet-gateway-id <igw-id> --vpc-id <vpc-id>
   <img src="screenshot/11.3.1.PNG" width=""/>
 </div>
 
-#### 2. Delete the Internet Gateway:
+#### 13.2. Delete the Internet Gateway:
 ```bash
 aws ec2 delete-internet-gateway --internet-gateway-id <igw-id>
 ```
@@ -486,8 +495,10 @@ aws ec2 delete-internet-gateway --internet-gateway-id <igw-id>
   <img src="screenshot/11.3.2.PNG" width=""/>
 </div>
 
-### 11.4: Delete the Subnet
-#### 1. Delete the public subnet (replace <subnet-id> with your Subnet ID):
+---
+
+## 14: Delete the Subnet
+#### 14.1. Delete the public subnet (replace <subnet-id> with your Subnet ID):
 ```bash
 aws ec2 delete-subnet --subnet-id <subnet-id>
 ```
@@ -496,8 +507,10 @@ aws ec2 delete-subnet --subnet-id <subnet-id>
   <img src="screenshot/11.4.PNG" width=""/>
 </div>
 
-### 11.5: Delete Route Table
-#### 1. Delete the Route Table (replace <route-table-id> with your Route Table ID):
+---
+
+## 15: Delete Route Table
+#### 15.1. Delete the Route Table (replace <route-table-id> with your Route Table ID):
 ```bash
 aws ec2 delete-route-table --route-table-id <route-table-id>
 ```
@@ -506,7 +519,9 @@ aws ec2 delete-route-table --route-table-id <route-table-id>
   <img src="screenshot/11.5.PNG" width=""/>
 </div>
 
-### 11.6: Deleting All EBS Snapshots
+---
+
+## 16: Deleting All EBS Snapshots
 ```bash
 aws ec2 describe-snapshots --owner-ids self --query 'Snapshots[*].SnapshotId' --output text | tr '\t' '\n' | while read -r snapshot; do aws ec2 delete-snapshot --snapshot-id "$snapshot"; done
 ```
@@ -515,8 +530,10 @@ aws ec2 describe-snapshots --owner-ids self --query 'Snapshots[*].SnapshotId' --
   <img src="screenshot/11.6.PNG" width=""/>
 </div>
 
-### 11.7: Delete Security Groups
-#### 1. Delete the security groups (replace <security-group-id> with your security group IDs):
+---
+
+## 17: Delete Security Groups
+#### 17.1. Delete the security groups (replace <security-group-id> with your security group IDs):
 ```bash
 aws ec2 delete-security-group --group-id <processor-sg-id>
 aws ec2 delete-security-group --group-id <command-host-sg-id>
@@ -526,8 +543,10 @@ aws ec2 delete-security-group --group-id <command-host-sg-id>
   <img src="screenshot/11.7.PNG" width=""/>
 </div>
 
-### 11.8: Delete the VPC
-#### 1. Delete the VPC (replace <vpc-id> with your VPC ID):
+---
+
+## 18: Delete the VPC
+#### 18.1. Delete the VPC (replace <vpc-id> with your VPC ID):
 ```bash
 aws ec2 delete-vpc --vpc-id <vpc-id>
 ```
@@ -536,5 +555,9 @@ aws ec2 delete-vpc --vpc-id <vpc-id>
   <img src="screenshot/11.8.PNG" width=""/>
 </div>
 
+---
+
+## Conclusion
+We can run Python scripts for backup management and Amazon S3 provides recovery mechanisms that ensure data durability
 
 
