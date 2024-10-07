@@ -1,4 +1,4 @@
-# AWS Python EBS Snapshots (IN PROGRESS)
+# AWS Python EBS Snapshots 
 
 <div align="center">
   <img src="screenshot/architecture.png" width=""/>
@@ -25,6 +25,10 @@ This project is divided into two parts:
 aws ec2 create-vpc --cidr-block 10.0.0.0/16
 ```
 
+<div align="center">
+  <img src="screenshot/1.1.png" width=""/>
+</div>
+
 ---
 
 ## Step 2: Create a Public Subnet
@@ -36,6 +40,10 @@ aws ec2 create-subnet \
 	--availability-zone <your-az>
 ```
 
+<div align="center">
+  <img src="screenshot/2.1.png" width=""/>
+</div>
+
 ---
 
 ## Step 3: Create Internet Gateway and Public Route Table
@@ -45,6 +53,10 @@ aws ec2 create-internet-gateway
 ```
 An IGW is necessary to allow public internet access for the EC2 instances in the public subnet.
 
+<div align="center">
+  <img src="screenshot/3.1.png" width=""/>
+</div>
+
 #### 3.2. Attach the IGW to your VPC:
 ```bash
 aws ec2 attach-internet-gateway \
@@ -52,11 +64,19 @@ aws ec2 attach-internet-gateway \
 	--vpc-id <vpc-id>
 ```
 
+<div align="center">
+  <img src="screenshot/3.2.png" width=""/>
+</div>
+
 #### 3.3. Create a Public Route Table:
 ```bash
 aws ec2 create-route-table --vpc-id <vpc-id>
 ```
 This route table will allow instances in the public subnet to communicate with the internet.
+
+<div align="center">
+  <img src="screenshot/3.3.png" width=""/>
+</div>
 
 #### 3.4. Add a Route to the Internet Gateway in the Public Route Table:
 ```bash
@@ -66,12 +86,20 @@ aws ec2 create-route \
 	--gateway-id <igw-id>
 ```
 
+<div align="center">
+  <img src="screenshot/3.4.png" width=""/>
+</div>
+
 #### 3.5. Associate the Public Subnet with the Route Table:
 ```bash
 aws ec2 associate-route-table \
 	--route-table-id <route-table-id> \
 	--subnet-id <subnet-id>
 ```
+
+<div align="center">
+  <img src="screenshot/3.5.png" width=""/>
+</div>
 
 ---
 
@@ -91,6 +119,10 @@ aws ec2 authorize-security-group-ingress \
 	--cidr <your-ip>/32
 ```
 
+<div align="center">
+  <img src="screenshot/4.1.png" width=""/>
+</div>
+
 #### 4.2. Create a security group for the Processor instance and allow SSH access from the Command Host:
 ```bash
 aws ec2 create-security-group \
@@ -106,6 +138,10 @@ aws ec2 authorize-security-group-ingress \
 	--source-group <command-host-sg-id>
 ```
 
+<div align="center">
+  <img src="screenshot/4.2.png" width=""/>
+</div>
+
 ---
 
 ## Step 5: Launch Command Host EC2 Instance
@@ -119,6 +155,11 @@ aws ec2 run-instances \
 	--associate-public-ip-address \
 	--security-group-ids <command-host-sg-id>
 ```
+
+<div align="center">
+  <img src="screenshot/1.1.png" width=""/>
+</div>
+
 #### 5.2. SSH into the Command Host instance:
 ```bash
 aws ec2 describe-instances \
@@ -129,6 +170,10 @@ aws ec2 describe-instances \
 ```bash
 ssh -i <your-key-pair> ec2-user@<public-ip>
 ```
+
+<div align="center">
+  <img src="screenshot/5.2.png" width=""/>
+</div>
 
 ---
 
@@ -142,6 +187,11 @@ aws ec2 run-instances \
 	--subnet-id <subnet-id> \
 	--security-group-ids <processor-sg-id>
 ```
+
+<div align="center">
+  <img src="screenshot/6.1.png" width=""/>
+</div>
+
 #### 6.2. SSH into the Processor instance.
 ```bash
 aws ec2 describe-instances \
@@ -152,6 +202,10 @@ aws ec2 describe-instances \
 ssh -i <your-key-pair> ec2-user@<private-ip>
 ```
 
+<div align="center">
+  <img src="screenshot/6.2.png" width=""/>
+</div>
+
 ---
 
 # Part 2: Automating EBS Snapshots and Syncing to S3
@@ -159,6 +213,12 @@ ssh -i <your-key-pair> ec2-user@<private-ip>
 ---
 
 ## Step 7: Schedule EBS snapshots to be taken every minute using cron.
+#### Install cronie:
+
+<div align="center">
+  <img src="screenshot/7.0.png" width=""/>
+</div>
+
 #### 7.1. Retrieve EBS Volume ID from an EC2 Instance:
 ```bash
 aws ec2 describe-instances \
@@ -166,40 +226,74 @@ aws ec2 describe-instances \
     --query "Reservations[*].Instances[*].BlockDeviceMappings[*].[Ebs.VolumeId]" \
     --output text
 ```
+
+<div align="center">
+  <img src="screenshot/7.1.png" width=""/>
+</div>
+
 #### 7.2. Add the following cron job to create a snapshot every minute:
 ```bash
 echo "* * * * *  aws ec2 create-snapshot --volume-id <volume-id> 2>&1 >> /tmp/cronlog" > cronjob
 
 crontab cronjob
 ```
+
+<div align="center">
+  <img src="screenshot/7.2.1.png" width=""/>
+</div>
+
+<div align="center">
+  <img src="screenshot/7.2.2.png" width=""/>
+</div>
+
+<div align="center">
+  <img src="screenshot/7.2.3.png" width=""/>
+</div>
+
 #### 7.3. Retrieve Snapshots for a Specific EBS Volume:
 ```bash
 aws ec2 describe-snapshots --filters "Name=volume-id,Values=<volume-id>"
 ```
+
+<div align="center">
+  <img src="screenshot/7.3.png" width=""/>
+</div>
 
 #### 7.4: Stop Cron Job
 ```bash
 crontab -r
 ```
 
+<div align="center">
+  <img src="screenshot/7.4.png" width=""/>
+</div>
+
 ---
 
-## Step 9: Python Script to Delete Old Snapshots
-#### 9.1. Install pip and Boto3:
+## Step 8: Python Script to Delete Old Snapshots
+#### 8.1. Install pip and Boto3:
 ```bash
 sudo yum install python3-pip -y  
 pip3 install boto3
 ```
 - Before running the cleanup script, let's list all the snapshots that have been taken to ensure we have proper control before stopping the cron job and deleting the old snapshots.
 
-#### 9.2. List All Snapshots:
+<div align="center">
+  <img src="screenshot/8.1.png" width=""/>
+</div>
+
+#### 8.2. List All Snapshots:
 ```bash
 aws ec2 describe-snapshots \
 	--filters "Name=volume-id, Values=<VOLUME-ID>" \
 	--query 'Snapshots[*].SnapshotId'
 ```
 
-#### 9.3. Python Script:
+<div align="center">
+  <img src="screenshot/8.2.png" width=""/>
+</div>
+
+#### 8.3. Python Script:
 - Save the script below as snapshot_cleanup.py and execute it to delete the oldest snapshots, keeping only the two most recent ones:
 ```bash
 #!/usr/bin/env python
@@ -228,24 +322,50 @@ for v in volume_iterator:
             s[2].delete()
 ```
 
+<div align="center">
+  <img src="screenshot/8.3.1.png" width=""/>
+</div>
+
+<div align="center">
+  <img src="screenshot/8.3.2.png" width=""/>
+</div>
+
+<div align="center">
+  <img src="screenshot/8.3.3.png" width=""/>
+</div>
+
 ---
 
-## Step 10: Sync Local Files with S3 and Use Versioning for Recovery
+## Step 9: Sync Local Files with S3 and Use Versioning for Recovery
 - In this step, you'll download a set of sample files, create an Amazon S3 bucket, enable versioning to track changes, and test file recovery from S3 using versioning.
 ---
-#### 10.1. Create an S3 bucket:
+#### 9.1. Create an S3 bucket:
 ```bash
 aws s3api create-bucket --bucket <your-bucket-name> --region <your-region>
 ```
-#### 10.2. Download Sample Files
+<div align="center">
+  <img src="screenshot/9.1.png" width=""/>
+</div>
+
+#### 9.2. Download Sample Files
 ```bash
 wget https://aws-tc-largeobjects.s3.us-west-2.amazonaws.com/CUR-TF-100-RSJAWS-3-23732/183-lab-JAWS-managing-storage/s3/files.zip
 ```
-#### 10.3. Unzip the Files
+
+<div align="center">
+  <img src="screenshot/9.2.png" width=""/>
+</div>
+
+#### 9.3. Unzip the Files
 ```bash
 unzip files.zip
 ```
-#### 10.4. Enable Versioning on Your S3 Bucket:
+
+<div align="center">
+  <img src="screenshot/9.3.png" width=""/>
+</div>
+
+#### 9.4. Enable Versioning on Your S3 Bucket:
 ```bash
 aws s3api put-bucket-versioning \
 	--bucket <your-bucket-name> \
@@ -253,12 +373,22 @@ aws s3api put-bucket-versioning \
 ```
 - To ensure that any changes or deletions to files are tracked, you need to activate versioning on your S3 bucket. Run the following command to enable versioning on your bucket
 - This ensures that every time you modify or delete a file in the S3 bucket, the previous version is retained, allowing for easy recovery.
+
+<div align="center">
+  <img src="screenshot/9.4.png" width=""/>
+</div>
+
 #### 10.5. Sync Files to S3 Bucket:
 ```bash
 aws s3 sync ./files/ s3://<your-bucket-name>/
 ```
 - Sync the unzipped folder with your S3 bucket. This will upload all the files from the local directory to the S3 bucket. Use the following command to sync the folder
 - This command will upload the files from the ./files/ directory to your S3 bucket.
+
+<div align="center">
+  <img src="screenshot/9.5.png" width=""/>
+</div>
+
 #### 10.6. Sync with Deletion Capability
 ```bash
 aws s3 sync ./files/ s3://<your-bucket-name>/ --delete
@@ -266,19 +396,145 @@ aws s3 sync ./files/ s3://<your-bucket-name>/ --delete
 - To ensure that any local file deletion is reflected in the S3 bucket, use the --delete flag with the sync command. This flag deletes files from the S3 bucket when the corresponding file is deleted locally
 - If you delete a file locally and re-run this command, the corresponding file in the S3 bucket will be deleted as well.
 
+<div align="center">
+  <img src="screenshot/9.6.png" width=""/>
+</div>
+
 ---
 
-## Step 11: Recover Deleted Files Using Versioning
-#### 11.1. Liste the versions of the deleted file:
+## Step 10: Recover Deleted Files Using Versioning
+#### 10.1. Liste the versions of the deleted file:
 ```bash
 aws s3api list-object-versions --bucket <your-bucket-name> --prefix <file-name>
 ```
 - Since versioning is enabled, even when a file is deleted, its previous version is still stored in the S3 bucket.
-#### 11.2. Use the following command to restore a specific version of the deleted file:
+
+<div align="center">
+  <img src="screenshot/10.1.png" width=""/>
+</div>
+
+#### 10.2. Use the following command to restore a specific version of the deleted file:
 ```bash
-aws s3 cp s3://<your-bucket-name>/<file-name> --version-id <version-id> ./files/
+aws s3api get-object --bucket <bucket-name> --key <object-key> --version-id <version-id> <output-file>
 ```
 - Now, your deleted file will be restored from a previous version stored in S3!
+
+<div align="center">
+  <img src="screenshot/10.2.png" width=""/>
+</div>
+
+---
+
+## Step 11: Clean Up and Delete All Resources to Avoid Charges
+
+---
+
+### 11.1: Stop and Terminate EC2 Instances
+#### 1. List all EC2 instances to find the Instance IDs:
+```bash
+aws ec2 describe-instances --query 'Reservations[*].Instances[*].InstanceId' --output text
+```
+
+<div align="center">
+  <img src="screenshot/11.1.1.png" width=""/>
+</div>
+
+#### 2. Terminate the instances:
+```bash
+aws ec2 terminate-instances --instance-ids <instance-id-1> <instance-id-2>
+```
+
+<div align="center">
+  <img src="screenshot/11.1.2.png" width=""/>
+</div>
+
+### 11.2: Delete S3 Bucket and Objects
+#### 1. Empty the S3 bucket (replace <your-bucket-name> with your bucket's name):
+```bash
+aws s3 rm s3://<your-bucket-name>/ --recursive
+```
+
+<div align="center">
+  <img src="screenshot/11.2.1.png" width=""/>
+</div>
+
+#### 2. Delete the S3 bucket:
+```bash
+aws s3api delete-bucket --bucket <your-bucket-name>
+```
+
+<div align="center">
+  <img src="screenshot/11.2.2.png" width=""/>
+</div>
+
+### 11.3: Detach and Delete the Internet Gateway
+#### 1. Detach the Internet Gateway from your VPC (replace <igw-id> and <vpc-id> with your IDs):
+```bash
+aws ec2 detach-internet-gateway --internet-gateway-id <igw-id> --vpc-id <vpc-id>
+```
+
+<div align="center">
+  <img src="screenshot/11.3.1.png" width=""/>
+</div>
+
+#### 2. Delete the Internet Gateway:
+```bash
+aws ec2 delete-internet-gateway --internet-gateway-id <igw-id>
+```
+
+<div align="center">
+  <img src="screenshot/11.3.2.png" width=""/>
+</div>
+
+### 11.4: Delete the Subnet
+#### 1. Delete the public subnet (replace <subnet-id> with your Subnet ID):
+```bash
+aws ec2 delete-subnet --subnet-id <subnet-id>
+```
+
+<div align="center">
+  <img src="screenshot/11.4.png" width=""/>
+</div>
+
+### 11.5: Delete Route Table
+#### 1. Delete the Route Table (replace <route-table-id> with your Route Table ID):
+```bash
+aws ec2 delete-route-table --route-table-id <route-table-id>
+```
+
+<div align="center">
+  <img src="screenshot/11.5.png" width=""/>
+</div>
+
+### 11.6: Deleting All EBS Snapshots
+```bash
+aws ec2 describe-snapshots --owner-ids self --query 'Snapshots[*].SnapshotId' --output text | tr '\t' '\n' | while read -r snapshot; do aws ec2 delete-snapshot --snapshot-id "$snapshot"; done
+```
+
+<div align="center">
+  <img src="screenshot/11.6.png" width=""/>
+</div>
+
+### 11.7: Delete Security Groups
+#### 1. Delete the security groups (replace <security-group-id> with your security group IDs):
+```bash
+aws ec2 delete-security-group --group-id <processor-sg-id>
+aws ec2 delete-security-group --group-id <command-host-sg-id>
+```
+
+<div align="center">
+  <img src="screenshot/11.7.png" width=""/>
+</div>
+
+### 11.8: Delete the VPC
+#### 1. Delete the VPC (replace <vpc-id> with your VPC ID):
+```bash
+aws ec2 delete-vpc --vpc-id <vpc-id>
+```
+
+<div align="center">
+  <img src="screenshot/11.8.png" width=""/>
+</div>
 
 
 
