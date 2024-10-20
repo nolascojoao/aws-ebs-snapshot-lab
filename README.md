@@ -148,6 +148,7 @@ aws ec2 authorize-security-group-ingress \
 
 ## Step 5: Launch Command Host EC2 Instance
 #### 5.1. This instance will manage and control other resources:
+- **AMI Suggestion:** `ami-0ebfd941bbafe70c6`. [Find an AMI](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/finding-an-ami.html)
 ```bash
 aws ec2 run-instances \
 	--image-id ami-<your-ami-id> \
@@ -159,7 +160,7 @@ aws ec2 run-instances \
 ```
 
 <div align="center">
-  <img src="screenshot/1.1.PNG" width=""/>
+  <img src="screenshot/5.1.PNG" width=""/>
 </div>
 
 #### 5.2. SSH into the Command Host instance:
@@ -181,6 +182,7 @@ ssh -i <your-key-pair> ec2-user@<public-ip>
 
 ## Step 6: Launch Processor EC2 Instance
 #### 6.1. This instance will interact with the default EBS volume attached to it for processing data:
+- **AMI Suggestion:** `ami-0ebfd941bbafe70c6`. [Find an AMI](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/finding-an-ami.html)
 ```bash
 aws ec2 run-instances \
 	--image-id ami-<your-ami-id> \
