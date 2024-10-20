@@ -1,4 +1,4 @@
-# AWS Python EBS Snapshots Lab
+# AWS EBS Snapshots With Python Lab
 
 <div align="center">
   <img src="screenshot/architecture.png" width=""/>
@@ -14,6 +14,7 @@ This project is divided into two parts:
 ⚠️ **Attention:**
 - All the tasks will be completed via the command line using AWS CLI. Ensure you have the necessary permissions. [Install AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 - Charges may apply for completing this lab. [AWS Pricing](https://aws.amazon.com/pricing/)
+- ![Click here](/scripts) to access the automated version with shell scripts.
 ---
 
 # Part I: Architecture Preparation
