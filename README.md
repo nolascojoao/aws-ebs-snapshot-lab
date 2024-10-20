@@ -14,7 +14,6 @@ This project is divided into two parts:
 ⚠️ **Attention:**
 - All the tasks will be completed via the command line using AWS CLI. Ensure you have the necessary permissions. [Install AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 - Charges may apply for completing this lab. [AWS Pricing](https://aws.amazon.com/pricing/)
-- ![Click here](/scripts) to access the automated version with shell scripts.
 ---
 
 # Part I: Architecture Preparation
@@ -562,5 +561,16 @@ aws ec2 delete-vpc --vpc-id <vpc-id>
 
 ## Conclusion
 We can run Python scripts for backup management and Amazon S3 provides recovery mechanisms that ensure data durability
+
+- Alternatively, you can create shell scripts to automate the process
+
+- By running `setup.sh`, you can see an example of tasks automated up to **step 5.1 (Launch Command Host EC2 Instance)**
+```bash
+./setup.sh
+```
+
+<div align="center">
+  <img src="screenshot/S1.PNG" width=""/>
+</div>
 
 
